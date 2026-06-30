@@ -1,789 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Croquet — Classic lawn game for iPhone</title>
-  <meta name="description" content="Croquet is a beautiful, minimalist iOS game that brings the classic lawn game to your pocket. Play solo or challenge up to 4 friends." />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:         #3D6B25;
-      --checker:    rgba(45, 82, 24, 0.14);
-      --court:      #2D3B2A;
-      --surface:    rgba(15, 15, 20, 0.68);
-      --fg:         #F5F3ED;
-      --fg-dim:     #9A9690;
-      --accent:     #9B7FCC;
-      --stake:      #8B6F47;
-      --blue:       #3A6EA5;
-      --red:        #A53A3A;
-      --black-ball: #3A3A3E;
-      --yellow:     #9B8A2A;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background-color: var(--bg);
-      background-image: repeating-conic-gradient(var(--checker) 0% 25%, var(--bg) 0% 50%);
-      background-size: 80px 80px;
-      color: var(--fg);
-      font-family: -apple-system, "SF Pro Rounded", "Helvetica Neue", sans-serif;
-      line-height: 1.6;
-    }
-
-    /* ── NAV ───────────────────────────────── */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 40px;
-      background: rgba(15, 15, 20, 0.82);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid rgba(245, 243, 237, 0.08);
-    }
-
-    .nav-logo {
-      font-size: 1.1rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      color: var(--fg);
-      text-decoration: none;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 32px;
-      list-style: none;
-    }
-
-    .nav-links a {
-      color: var(--fg-dim);
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.2s;
-    }
-
-    .nav-links a:hover { color: var(--fg); }
-
-    /* ── HERO ──────────────────────────────── */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 120px 24px 80px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(15,15,20,0.45) 0%, rgba(15,15,20,0.05) 100%);
-      pointer-events: none;
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      width: 2px;
-      height: 260px;
-      background: linear-gradient(to bottom, transparent, rgba(245,243,237,0.15), transparent);
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
-
-    .hero-eyebrow {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 20px;
-      position: relative;
-    }
-
-    .hero h1 {
-      font-size: clamp(3.5rem, 10vw, 7rem);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1;
-      margin-bottom: 24px;
-      position: relative;
-      text-shadow: 0 2px 28px rgba(0,0,0,0.35);
-    }
-
-    .hero-sub {
-      font-size: clamp(1rem, 2.5vw, 1.25rem);
-      color: var(--fg-dim);
-      max-width: 480px;
-      margin-bottom: 48px;
-      position: relative;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      justify-content: center;
-      position: relative;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 14px 28px;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      text-decoration: none;
-      transition: transform 0.15s, opacity 0.15s;
-      cursor: pointer;
-    }
-
-    .btn:hover { transform: translateY(-2px); opacity: 0.9; }
-    .btn:active { transform: translateY(0); }
-
-    .btn-primary { background: var(--accent); color: #fff; }
-
-    .btn-secondary {
-      background: rgba(15, 15, 20, 0.5);
-      color: var(--fg);
-      border: 1px solid rgba(245, 243, 237, 0.18);
-      backdrop-filter: blur(8px);
-    }
-
-    .balls {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      margin-top: 64px;
-      position: relative;
-    }
-
-    .ball {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.15);
-    }
-
-    .ball-blue   { background: var(--blue); }
-    .ball-red    { background: var(--red); }
-    .ball-black  { background: var(--black-ball); }
-    .ball-yellow { background: var(--yellow); }
-
-    /* ── GLASS PANEL — shared by all content sections ── */
-    .glass {
-      background: var(--surface);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(245, 243, 237, 0.08);
-      border-radius: 20px;
-      max-width: 1000px;
-      margin: 32px auto;
-      padding: 64px 56px;
-    }
-
-    .section-label {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 12px;
-    }
-
-    .section-title {
-      font-size: clamp(1.8rem, 4vw, 2.8rem);
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 16px;
-    }
-
-    .section-sub {
-      color: var(--fg-dim);
-      max-width: 520px;
-      font-size: 1.05rem;
-    }
-
-    /* ── FEATURES GRID ─────────────────────── */
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-      margin-top: 48px;
-    }
-
-    .feature-card {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(245, 243, 237, 0.08);
-      border-radius: 14px;
-      padding: 24px;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-
-    .feature-card:hover {
-      border-color: rgba(155, 127, 204, 0.35);
-      transform: translateY(-3px);
-    }
-
-    .feature-icon { font-size: 1.5rem; margin-bottom: 12px; }
-
-    .feature-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
-    .feature-card p  { font-size: 0.88rem; color: var(--fg-dim); line-height: 1.55; }
-
-    /* ── HOW TO PLAY ───────────────────────── */
-    .steps {
-      display: flex;
-      flex-direction: column;
-      margin-top: 48px;
-      border-left: 2px solid rgba(155, 127, 204, 0.22);
-      padding-left: 32px;
-    }
-
-    .step { position: relative; padding-bottom: 36px; }
-    .step:last-child { padding-bottom: 0; }
-
-    .step-num {
-      position: absolute;
-      left: -45px; top: 0;
-      width: 26px; height: 26px;
-      background: var(--accent);
-      color: #fff;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
-
-    .step h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 5px; }
-    .step p  { color: var(--fg-dim); font-size: 0.9rem; }
-
-    /* ── COURSE DIAGRAM ────────────────────── */
-    .diagram-wrap {
-      margin-top: 48px;
-      background: rgba(0,0,0,0.25);
-      border-radius: 16px;
-      padding: 32px 24px 24px;
-      border: 1px solid rgba(245, 243, 237, 0.07);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .diagram-title {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--fg-dim);
-      margin-bottom: 24px;
-    }
-
-    svg.course { display: block; }
-
-    /* ── ACHIEVEMENTS ──────────────────────── */
-    .achievements-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      margin-top: 48px;
-    }
-
-    .ach-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(245, 243, 237, 0.08);
-      border-radius: 12px;
-      padding: 14px 16px;
-    }
-
-    .ach-icon { font-size: 1.4rem; flex-shrink: 0; }
-    .ach-item h4 { font-size: 0.88rem; font-weight: 600; }
-    .ach-item p  { font-size: 0.76rem; color: var(--fg-dim); }
-
-    /* ── CTA ───────────────────────────────── */
-    .cta-glass { text-align: center; }
-    .cta-glass .section-sub { margin: 0 auto 40px; }
-
-    /* ── CONTACT FORM ──────────────────────── */
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    .form-field { margin-bottom: 16px; }
-
-    .form-field label {
-      display: block;
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: var(--fg-dim);
-      margin-bottom: 7px;
-      letter-spacing: 0.02em;
-    }
-
-    .form-field input,
-    .form-field textarea {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(245, 243, 237, 0.12);
-      border-radius: 10px;
-      padding: 12px 16px;
-      color: var(--fg);
-      font-family: inherit;
-      font-size: 0.95rem;
-      line-height: 1.5;
-      outline: none;
-      transition: border-color 0.2s, background 0.2s;
-    }
-
-    .form-field input::placeholder,
-    .form-field textarea::placeholder { color: rgba(154, 150, 144, 0.5); }
-
-    .form-field input:focus,
-    .form-field textarea:focus {
-      border-color: rgba(155, 127, 204, 0.55);
-      background: rgba(255, 255, 255, 0.07);
-    }
-
-    .form-field textarea { resize: vertical; min-height: 130px; }
-
-    .form-status {
-      margin-top: 16px;
-      font-size: 0.9rem;
-      min-height: 1.4em;
-    }
-
-    .form-status.success { color: #7BC67E; }
-    .form-status.error   { color: #E07070; }
-
-    @media (max-width: 580px) {
-      .form-row { grid-template-columns: 1fr; }
-    }
-
-    /* ── FOOTER ────────────────────────────── */
-    footer {
-      border-top: 1px solid rgba(245, 243, 237, 0.08);
-      background: rgba(15, 15, 20, 0.75);
-      backdrop-filter: blur(12px);
-      padding: 32px 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.82rem;
-      color: var(--fg-dim);
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 32px;
-    }
-
-    footer a { color: var(--fg-dim); text-decoration: none; }
-    footer a:hover { color: var(--fg); }
-
-    /* ── RESPONSIVE ────────────────────────── */
-    @media (max-width: 768px) {
-      .glass { padding: 48px 32px; margin: 20px 16px; }
-    }
-
-    @media (max-width: 640px) {
-      nav { padding: 14px 20px; }
-      .nav-links { display: none; }
-      .glass { padding: 36px 24px; }
-      footer { flex-direction: column; text-align: center; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    line-height: 1.6;
+    color: #1d1d1f;
+    background: #fff;
+  }
+  h1 {
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+  .updated {
+    color: #6e6e73;
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  h2 {
+    font-size: 19px;
+    margin-top: 36px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e5e5e7;
+    padding-bottom: 6px;
+  }
+  p, li {
+    font-size: 16px;
+    color: #1d1d1f;
+  }
+  ul {
+    padding-left: 22px;
+  }
+  li {
+    margin-bottom: 8px;
+  }
+  .note {
+    background: #f5f5f7;
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-size: 14px;
+    color: #515154;
+    margin-top: 8px;
+  }
+  a {
+    color: #0066cc;
+  }
+  footer {
+    margin-top: 48px;
+    font-size: 13px;
+    color: #86868b;
+  }
+</style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <a class="nav-logo" href="#">Croquet</a>
-  <ul class="nav-links">
-    <li><a href="#features">Features</a></li>
-    <li><a href="#how-to-play">How to Play</a></li>
-    <li><a href="#achievements">Achievements</a></li>
-    <li><a href="#download">Download</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#privacy">Privacy</a></li>
-  </ul>
-</nav>
+<h1>Privacy Policy</h1>
+<p class="updated">Last updated: June 30, 2026</p>
 
-<!-- HERO -->
-<header class="hero">
-  <p class="hero-eyebrow">Available on iPhone</p>
-  <h1>Croquet</h1>
-  <p class="hero-sub">The classic lawn game — beautifully minimal. Play solo or challenge up to four friends.</p>
-  <div class="btn-group">
-    <a class="btn btn-primary" href="#download">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-      App Store
-    </a>
-    <a class="btn btn-secondary" href="#how-to-play">Learn the rules</a>
-  </div>
-  <div class="balls">
-    <div class="ball ball-blue"></div>
-    <div class="ball ball-red"></div>
-    <div class="ball ball-black"></div>
-    <div class="ball ball-yellow"></div>
-  </div>
-</header>
+<p>This Privacy Policy describes how the Croquet app ("the App," "we," "us") handles information when you use it. We built this app to be as privacy-respecting as possible — we do not collect personal information, run ads, or sell data to anyone.</p>
 
-<!-- FEATURES -->
-<div id="features">
-  <div class="glass">
-    <p class="section-label">Features</p>
-    <h2 class="section-title">Everything you need, nothing you don't</h2>
-    <p class="section-sub">A faithful, streamlined take on the full croquet ruleset — complete with physics, power shots, and turn-based play for 2–4 players.</p>
+<h2>Information We Collect</h2>
+<p>The App collects the following limited information:</p>
+<ul>
+  <li><strong>Anonymous usage analytics.</strong> We collect basic, non-identifying analytics about how the App is used — such as which features are opened, session length, crash reports, and general performance data. This helps us fix bugs and improve the App. This data is not linked to your name, email, or any personal identity.</li>
+  <li><strong>Game Center data.</strong> If you choose to enable Game Center, Apple manages achievements and leaderboard data on our behalf. We only receive the minimum information needed to display scores and achievements (such as your Game Center alias and score values). We do not store this data on our own servers, and Apple's own privacy policy governs how Game Center handles your account information.</li>
+  <li><strong>Multiplayer game data (iMessage).</strong> If you play a multiplayer game through the iMessage extension, the player names you enter and the live game state (turn order, ball positions, scores) are shared directly between the devices in that iMessage conversation, the same way any iMessage content is shared. This data is not sent to or stored on our servers — it stays within the message thread, governed by Apple's iMessage infrastructure.</li>
+</ul>
 
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">🏏</div>
-        <h3>Physics-based shots</h3>
-        <p>Tap and drag to aim. Drag distance sets power — the further you pull, the harder you swing. A mallet animation plays on every shot.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🎯</div>
-        <h3>Full 16-passage course</h3>
-        <p>Nine wickets, two stakes, and a proper sequence from start to finish — including the returning leg and centre-wicket double-traverse.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">👥</div>
-        <h3>2–4 players, one device</h3>
-        <p>Pass-and-play multiplayer with blue, red, black, and yellow balls. Each player takes their turn on the same screen.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3>Bonus shots</h3>
-        <p>Clear a wicket and keep going. Roquet an opponent's ball to earn croquet shots. Chain your way to a hat-trick.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔈</div>
-        <h3>Sound & haptics</h3>
-        <p>Synthesised mallet cracks, wicket pings, and subtle haptic feedback on every hit. Toggle each independently in Settings.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🏆</div>
-        <h3>Achievements</h3>
-        <p>Seven unlockable achievements tracked locally and reported to Game Center — including the elusive Hat Trick.</p>
-      </div>
-    </div>
-  </div>
-</div>
+<h2>Information We Do Not Collect</h2>
+<ul>
+  <li>We do not require account creation, sign-up, or login (other than optional Game Center).</li>
+  <li>We do not collect your email address, phone number, or real name.</li>
+  <li>We do not track your precise location.</li>
+  <li>We do not access your contacts, photos, or microphone.</li>
+  <li>We do not serve third-party advertising.</li>
+  <li>We do not sell or rent your data to anyone, for any reason.</li>
+</ul>
 
-<!-- HOW TO PLAY -->
-<div id="how-to-play">
-  <div class="glass">
-    <p class="section-label">How to Play</p>
-    <h2 class="section-title">Up and playing in minutes</h2>
-    <p class="section-sub">Croquet mirrors the real game. Navigate your ball through every wicket in sequence to win.</p>
+<h2>How We Use Information</h2>
+<p>The limited analytics data we collect is used only to:</p>
+<ul>
+  <li>Understand which features people use, so we can improve the App</li>
+  <li>Identify and fix crashes or bugs</li>
+  <li>Monitor general app performance and stability</li>
+</ul>
 
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <h3>Choose your players</h3>
-        <p>Pick 2 to 4 players. Blue always goes first, followed by red, black, and yellow.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <h3>Aim and swing</h3>
-        <p>Tap and drag anywhere on screen. The drag direction becomes your aim and the drag distance sets power. Release to swing.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <h3>Clear wickets in order</h3>
-        <p>Pass through each wicket in the correct direction and sequence. Clearing a wicket earns you a bonus shot — keep going!</p>
-      </div>
-      <div class="step">
-        <div class="step-num">4</div>
-        <h3>Roquet your opponents</h3>
-        <p>Hit another player's ball (a roquet) to earn two extra shots. Use the first to position their ball, then play a croquet shot.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">5</div>
-        <h3>Finish at the stake</h3>
-        <p>The first ball to complete all 16 passages and hit the finishing stake wins. Hit the turning stake at the far end to start the return leg.</p>
-      </div>
-    </div>
+<h2>Data Sharing</h2>
+<p>We do not share, sell, or rent any data to third parties for marketing or advertising purposes. Game Center data is shared only with Apple as required for that feature to function. Multiplayer game data via iMessage is shared only with the other participant(s) in that conversation, as a normal function of the iMessage platform.</p>
 
-    <!-- Course diagram — coordinates from CourseSequence.swift, y-flipped for SVG -->
-    <!-- Court space: 360×700. Stakes: start(180,50), turning(180,650) in SpriteKit → SVG y = 700-y -->
-    <!-- Wicket gap=28, postW=5, postH=18 from CourtLayout.swift -->
-    <div class="diagram-wrap">
-      <p class="diagram-title">Course layout</p>
-      <svg class="course" viewBox="0 0 360 700" width="220" height="429" fill="none">
-        <defs>
-          <!-- Arrowhead for outgoing (blue) -->
-          <marker id="ao" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-            <polygon points="0,0 7,3.5 0,7" fill="#3A6EA5" opacity="0.85"/>
-          </marker>
-          <!-- Arrowhead for return (red) -->
-          <marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-            <polygon points="0,0 7,3.5 0,7" fill="#A53A3A" opacity="0.85"/>
-          </marker>
-        </defs>
+<h2>Children's Privacy</h2>
+<p>The App does not knowingly collect personal information from children. Since the App does not collect names, emails, or other identifying account information, no personal data is gathered from users of any age beyond the anonymous analytics and optional Game Center/iMessage features described above.</p>
 
-        <!-- Grass -->
-        <rect width="360" height="700" fill="#2D3B2A"/>
-        <!-- Subtle court line border -->
-        <rect x="1" y="1" width="358" height="698" fill="none" stroke="#3D5238" stroke-width="2" opacity="0.5"/>
+<h2>Data Retention</h2>
+<p>Anonymous analytics data is retained only as long as necessary to analyze app performance and improve the App. Multiplayer game data sent via iMessage is not retained by us at all — it exists only within the message thread on your and your contact's devices, subject to Apple's iMessage retention policies.</p>
 
-        <!--
-          Outgoing (passages 0–7):
-          Start(180,650)→A(180,540)→B(180,485)→C(308,420)→D(180,350)→E(308,280)→F(180,215)→G(180,160)→Turning(180,50)
-        -->
-        <polyline
-          points="180,650 180,540 180,485 308,420 180,350 308,280 180,215 180,160 180,50"
-          stroke="#3A6EA5" stroke-width="2.5" stroke-dasharray="8 5"
-          stroke-linecap="round" stroke-linejoin="round" opacity="0.75"
-          marker-end="url(#ao)"/>
+<h2>Your Choices</h2>
+<ul>
+  <li>You can disable Game Center integration at any time in your device's Settings, which will stop achievement and leaderboard syncing.</li>
+  <li>You can decline to use the iMessage multiplayer feature if you do not wish to share player names or game state with another participant.</li>
+</ul>
 
-        <!--
-          Return (passages 8–15):
-          Turning(180,50)→G(180,160)→F(180,215)→H(52,280)→D(180,350)→I(52,420)→B(180,485)→A(180,540)→Finish(180,650)
-        -->
-        <polyline
-          points="180,50 180,160 180,215 52,280 180,350 52,420 180,485 180,540 180,650"
-          stroke="#A53A3A" stroke-width="2.5" stroke-dasharray="8 5"
-          stroke-linecap="round" stroke-linejoin="round" opacity="0.75"
-          marker-end="url(#ar)"/>
+<h2>Changes to This Policy</h2>
+<p>We may update this Privacy Policy from time to time. Any changes will be reflected on this page with an updated "Last updated" date.</p>
 
-        <!-- ── Stakes ─────────────────────────── -->
-        <!-- Start/Finish stake at court(180,50) → SVG(180,650) -->
-        <circle cx="180" cy="650" r="8" fill="#8B6F47" stroke="#F5F3ED" stroke-width="1.5" opacity="0.95"/>
-        <text x="194" y="655" fill="#F5F3ED" font-size="14" font-family="-apple-system,sans-serif" opacity="0.75">Start / Finish</text>
+<h2>Contact Us</h2>
 
-        <!-- Turning stake at court(180,650) → SVG(180,50) -->
-        <circle cx="180" cy="50" r="8" fill="#8B6F47" stroke="#F5F3ED" stroke-width="1.5" opacity="0.95"/>
-        <text x="194" y="55" fill="#F5F3ED" font-size="14" font-family="-apple-system,sans-serif" opacity="0.75">Turning Stake</text>
+<p>If you have questions about this Privacy Policy, you can reach us at:</p>
+<p><strong>pale.lime7134@fastmail.com</strong></p>
 
-        <!-- ── Wickets ─────────────────────────
-             Each wicket: two vertical posts, gap=28, postW=5, postH=18
-             Left post:  rect(x-19, y-9, 5, 18)
-             Right post: rect(x+14, y-9, 5, 18)
-        ──────────────────────────────────────── -->
-
-        <!-- A  court(180,160) → SVG(180,540) -->
-        <rect x="161" y="531" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <rect x="194" y="531" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <text x="153" y="542" text-anchor="end" fill="#F5F3ED" font-size="14" font-family="-apple-system,sans-serif" opacity="0.65">A</text>
-
-        <!-- B  court(180,215) → SVG(180,485) -->
-        <rect x="161" y="476" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <rect x="194" y="476" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <text x="153" y="487" text-anchor="end" fill="#F5F3ED" font-size="14" font-family="-apple-system,sans-serif" opacity="0.65">B</text>
-
-        <!-- C  court(308,280) → SVG(308,420)  right lower corner -->
-        <rect x="289" y="411" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <rect x="322" y="411" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <text x="283" y="422" text-anchor="end" fill="#F5F3ED" font-size="14" font-family="-apple-system,sans-serif" opacity="0.65">C</text>
-
-        <!-- D  court(180,350) → SVG(180,350)  centre (traversed twice) -->
-        <rect x="161" y="341" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.95"/>
-        <rect x="194" y="341" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.95"/>
-        <text x="153" y="352" text-anchor="end" fill="#F5F3ED" font-size="14" font-family="-apple-system,sans-serif" opacity="0.65">D</text>
-
-        <!-- E  court(308,420) → SVG(308,280)  right upper corner -->
-        <rect x="289" y="271" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <rect x="322" y="271" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <text x="283" y="282" text-anchor="end" fill="#F5F3ED" font-size="14" font-family="-apple-system,sans-serif" opacity="0.65">E</text>
-
-        <!-- F  court(180,485) → SVG(180,215) -->
-        <rect x="161" y="206" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <rect x="194" y="206" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <text x="153" y="217" text-anchor="end" fill="#F5F3ED" font-size="14" font-family="-apple-system,sans-serif" opacity="0.65">F</text>
-
-        <!-- G  court(180,540) → SVG(180,160) -->
-        <rect x="161" y="151" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <rect x="194" y="151" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <text x="153" y="162" text-anchor="end" fill="#F5F3ED" font-size="14" font-family="-apple-system,sans-serif" opacity="0.65">G</text>
-
-        <!-- H  court(52,420) → SVG(52,280)   left upper corner -->
-        <rect x="33"  y="271" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <rect x="66"  y="271" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <text x="77"  y="282" text-anchor="start" fill="#F5F3ED" font-size="14" font-family="-apple-system,sans-serif" opacity="0.65">H</text>
-
-        <!-- I  court(52,280) → SVG(52,420)   left lower corner -->
-        <rect x="33"  y="411" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <rect x="66"  y="411" width="5" height="18" rx="1" fill="#F5F3ED" opacity="0.9"/>
-        <text x="77"  y="422" text-anchor="start" fill="#F5F3ED" font-size="14" font-family="-apple-system,sans-serif" opacity="0.65">I</text>
-
-        <!-- Legend -->
-        <line x1="20" y1="683" x2="44" y2="683" stroke="#3A6EA5" stroke-width="2.5" stroke-dasharray="8 5" opacity="0.85"/>
-        <text x="50" y="688" fill="#9A9690" font-size="13" font-family="-apple-system,sans-serif">Outgoing</text>
-        <line x1="150" y1="683" x2="174" y2="683" stroke="#A53A3A" stroke-width="2.5" stroke-dasharray="8 5" opacity="0.85"/>
-        <text x="180" y="688" fill="#9A9690" font-size="13" font-family="-apple-system,sans-serif">Return</text>
-      </svg>
-    </div>
-  </div>
-</div>
-
-<!-- ACHIEVEMENTS -->
-<div id="achievements">
-  <div class="glass">
-    <p class="section-label">Achievements</p>
-    <h2 class="section-title">Earn your stripes</h2>
-    <p class="section-sub">Seven achievements tracked locally and synced with Game Center. How many can you unlock?</p>
-
-    <div class="achievements-list">
-      <div class="ach-item">
-        <div class="ach-icon">🎯</div>
-        <div><h4>First Wicket</h4><p>Clear your opening wicket</p></div>
-      </div>
-      <div class="ach-item">
-        <div class="ach-icon">🔗</div>
-        <div><h4>Roquet!</h4><p>Hit an opponent's ball</p></div>
-      </div>
-      <div class="ach-item">
-        <div class="ach-icon">🎩</div>
-        <div><h4>Hat Trick</h4><p>Clear 3 wickets in one turn</p></div>
-      </div>
-      <div class="ach-item">
-        <div class="ach-icon">↩️</div>
-        <div><h4>Turning Point</h4><p>Hit the turning stake</p></div>
-      </div>
-      <div class="ach-item">
-        <div class="ach-icon">🏆</div>
-        <div><h4>Champion</h4><p>Win your first game</p></div>
-      </div>
-      <div class="ach-item">
-        <div class="ach-icon">⚡</div>
-        <div><h4>Flawless</h4><p>Win without missing a shot</p></div>
-      </div>
-      <div class="ach-item">
-        <div class="ach-icon">🌟</div>
-        <div><h4>Full Course</h4><p>Complete all 16 passages</p></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- CTA / DOWNLOAD -->
-<div id="download">
-  <div class="glass cta-glass">
-    <p class="section-label">Download</p>
-    <h2 class="section-title">Ready to play?</h2>
-    <p class="section-sub">Croquet is free to download on the App Store. Grab four people, one iPhone, and head to the lawn.</p>
-    <div class="btn-group">
-      <a class="btn btn-primary" href="#">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-        Download on the App Store
-      </a>
-    </div>
-  </div>
-</div>
-
-<!-- CONTACT -->
-<!-- To activate: sign up at formspree.io, create a form, and replace YOUR_FORM_ID below -->
-<div id="contact">
-  <div class="glass" style="max-width:700px;">
-    <p class="section-label">Contact</p>
-    <h2 class="section-title" style="font-size:1.8rem;">Get in touch</h2>
-    <p class="section-sub" style="margin-bottom:36px;">Questions, feedback, or just want to say hello — send a message and I'll get back to you.</p>
-
-    <form id="contact-form" action="https://formspree.io/f/xzdqoqzk" method="POST" novalidate>
-      <div class="form-row">
-        <div class="form-field">
-          <label for="cf-name">Name</label>
-          <input id="cf-name" type="text" name="name" placeholder="Your name" required />
-        </div>
-        <div class="form-field">
-          <label for="cf-email">Email</label>
-          <input id="cf-email" type="email" name="email" placeholder="you@example.com" required />
-        </div>
-      </div>
-      <div class="form-field">
-        <label for="cf-message">Message</label>
-        <textarea id="cf-message" name="message" placeholder="What's on your mind?" required></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Send message</button>
-      <p id="form-status" class="form-status" aria-live="polite"></p>
-    </form>
-  </div>
-</div>
-
-<!-- PRIVACY POLICY -->
-<div id="privacy">
-  <div class="glass" style="max-width:700px;">
-    <p class="section-label">Privacy Policy</p>
-    <h2 class="section-title" style="font-size:1.6rem;">Your data stays on your device</h2>
-    <p style="color:var(--fg-dim);font-size:0.95rem;line-height:1.7;margin-top:16px;">
-      Croquet does not collect, transmit, or store any personal data. The app works entirely offline — no internet connection is required or used. No analytics, no tracking, no ads.
-    </p>
-    <p style="color:var(--fg-dim);font-size:0.95rem;line-height:1.7;margin-top:12px;">
-      The only data saved is your local game progress and settings, stored on your device using Apple's standard UserDefaults. This data never leaves your device.
-    </p>
-    <p style="color:var(--fg-dim);font-size:0.95rem;line-height:1.7;margin-top:12px;">
-      Game Center is optionally used for achievements. If enabled, achievement data is handled entirely by Apple under their <a href="https://www.apple.com/legal/privacy/" style="color:var(--accent);text-decoration:none;">privacy policy</a>.
-    </p>
-    <p style="color:var(--fg-dim);font-size:0.95rem;line-height:1.7;margin-top:12px;">
-      If you submit the contact form, your name, email, and message are transmitted to Formspree solely to deliver your message to me. That information is not used for any other purpose.
-    </p>
-    <p style="color:var(--fg-dim);font-size:0.88rem;margin-top:24px;">Questions? <a href="mailto:ben@redmondfamily.net" style="color:var(--accent);text-decoration:none;">ben@redmondfamily.net</a></p>
-  </div>
-</div>
-
-<!-- FOOTER -->
 <footer>
-  <span>Croquet &copy; 2026</span>
-  <span>Made with Swift &amp; SpriteKit</span>
-  <div style="display:flex;gap:20px;">
-    <a href="#contact">Contact</a>
-    <a href="#privacy">Privacy Policy</a>
-  </div>
+  &copy; 2026 Croquet App. All rights reserved.
 </footer>
 
-<script>
-  const form   = document.getElementById('contact-form');
-  const status = document.getElementById('form-status');
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = form.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.textContent = 'Sending…';
-    status.className = 'form-status';
-    status.textContent = '';
-
-    try {
-      const res = await fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form),
-        headers: { 'Accept': 'application/json' }
-      });
-
-      if (res.ok) {
-        status.textContent = 'Message sent — thanks! I\'ll reply soon.';
-        status.className = 'form-status success';
-        form.reset();
-      } else {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json.error || 'server error');
-      }
-    } catch {
-      status.textContent = 'Something went wrong. Email me directly at ben@redmondfamily.net';
-      status.className = 'form-status error';
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Send message';
-    }
-  });
-</script>
 </body>
 </html>
